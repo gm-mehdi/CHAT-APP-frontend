@@ -6,7 +6,7 @@ const Conversation = () => {
             <div className='flex gap-2 items-center hover:bg-[#186b8c] rounded p-2 py-1 cursor-pointer'>
                 <div className="avatar online"> {/* the status of the user will be dynamic (online or offline) */}
                     <div className="w-12 rounded-full">
-                        <img src="https://daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
+                        <img src="https://daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" alt='photo'/>
                     </div>
                 </div>
                 <div className='flex flex-col flex-1 '>
