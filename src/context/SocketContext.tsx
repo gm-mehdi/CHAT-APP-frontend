@@ -1,22 +1,21 @@
-import { createContext, useState, useEffect, useContext, ReactNode } from "react";
+import { createContext, useState, useEffect, useContext } from "react";
 import { useAuthContext } from "./AuthContext";
 import io from "socket.io-client";
 
-const SocketContext = createContext({ socket: null, onlineUsers: [] });
+const SocketContext = createContext();
 
 export const useSocketContext = () => {
 	return useContext(SocketContext);
 };
 
-
-export const SocketContextProvider = ({ children }: { children: ReactNode }) => {
-	const [socket, setSocket] = useState<Socket | null>(null);
+export const SocketContextProvider = ({ children }) => {
+	const [socket, setSocket] = useState(null);
 	const [onlineUsers, setOnlineUsers] = useState([]);
-	const { authUser }: { authUser: { _id: string } | null } = useAuthContext();
+	const { authUser } = useAuthContext();
 
 	useEffect(() => {
 		if (authUser) {
-			const socket = io("https://chat-app-yt.onrender.com", {
+			const socket = io("http://localhost:8000", {
 				query: {
 					userId: authUser._id,
 				},
@@ -29,9 +28,7 @@ export const SocketContextProvider = ({ children }: { children: ReactNode }) => 
 				setOnlineUsers(users);
 			});
 
-			return () => {
-				socket.close();
-			};
+			return () => socket.close();
 		} else {
 			if (socket) {
 				socket.close();
