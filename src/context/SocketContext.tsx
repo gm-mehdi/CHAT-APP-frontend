@@ -1,41 +1,61 @@
-import { createContext, useState, useEffect, useContext } from "react";
+import { createContext, useState, useEffect, useContext, ReactNode } from "react";
 import { useAuthContext } from "./AuthContext";
-import io from "socket.io-client";
+import io, { Socket } from "socket.io-client";
 
-const SocketContext = createContext();
+// Define the type for the SocketContext
+interface SocketContextType {
+	socket: Socket | null;
+	onlineUsers: string[]; // Assuming online users are represented by their IDs
+}
 
-export const useSocketContext = () => {
-	return useContext(SocketContext);
+// Create a context with the defined type or null as the initial value
+const SocketContext = createContext<SocketContextType | null>(null);
+
+// Custom hook to use the SocketContext
+export const useSocketContext = (): SocketContextType => {
+	const context = useContext(SocketContext);
+	if (!context) {
+		throw new Error("useSocketContext must be used within a SocketContextProvider");
+	}
+	return context;
 };
 
-export const SocketContextProvider = ({ children }) => {
-	const [socket, setSocket] = useState(null);
-	const [onlineUsers, setOnlineUsers] = useState([]);
+// SocketContextProvider component
+export const SocketContextProvider = ({ children }: { children: ReactNode }) => {
+	const [socket, setSocket] = useState<Socket | null>(null);
+	const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
 	const { authUser } = useAuthContext();
 
 	useEffect(() => {
 		if (authUser) {
-			const socket = io("https://chat-app-backend-9rvc.onrender.com", {
+			// Establish a socket connection
+			const socketConnection = io("https://chat-app-backend-9rvc.onrender.com", {
 				query: {
 					userId: authUser._id,
 				},
 			});
-
-			setSocket(socket);
-
-			// socket.on() is used to listen to the events. can be used both on client and server side
-			socket.on("getOnlineUsers", (users) => {
+	
+			setSocket(socketConnection);
+	
+			// Listen for online users update
+			socketConnection.on("getOnlineUsers", (users: string[]) => {
 				setOnlineUsers(users);
 			});
-
-			return () => socket.close();
-		} else {
-			if (socket) {
-				socket.close();
-				setSocket(null);
-			}
+	
+			// Cleanup on unmount
+			return () => {
+				socketConnection.close(); // Ensure this is void
+			};
+		} else if (socket) {
+			socket.close();
+			setSocket(null);
 		}
 	}, [authUser]);
+	
 
-	return <SocketContext.Provider value={{ socket, onlineUsers }}>{children}</SocketContext.Provider>;
+	return (
+		<SocketContext.Provider value={{ socket, onlineUsers }}>
+			{children}
+		</SocketContext.Provider>
+	);
 };
