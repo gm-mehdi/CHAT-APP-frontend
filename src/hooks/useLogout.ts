@@ -14,14 +14,13 @@ const useLogout = () => {
 				headers: { "Content-Type": "application/json" },
 			});
 			const data = await res.json();
-            // console.log(data);
-			// if (data.error) {
-			// 	throw new Error(data.error);
-			// }
+			if (data.error) {
+				throw new Error(data.error);
+			}
 
 			localStorage.removeItem("chat-user");
 			setAuthUser(null);
-		} catch (error : any) {
+		} catch (error:any) {
 			toast.error(error.message);
 		} finally {
 			setLoading(false);

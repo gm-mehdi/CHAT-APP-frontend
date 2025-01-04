@@ -6,7 +6,7 @@ const useLogin = () => {
 	const [loading, setLoading] = useState(false);
 	const { setAuthUser } = useAuthContext();
 
-	const login = async (username : string, password : string) => {
+	const login = async (username: string, password: string) => {
 		const success = handleInputErrors(username, password);
 		if (!success) return;
 		setLoading(true);
@@ -14,17 +14,21 @@ const useLogin = () => {
 			const res = await fetch("http://localhost:8000/api/auth/login", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
+				credentials: "include",
 				body: JSON.stringify({ username, password }),
 			});
 
 			const data = await res.json();
+			// set token in cookie
+			document.cookie = `token=${data.token}; path=/; max-age=3600`;
+			
 			if (data.error) {
 				throw new Error(data.error);
 			}
 
 			localStorage.setItem("chat-user", JSON.stringify(data));
 			setAuthUser(data);
-		} catch (error : any) {
+		} catch (error:any) {
 			toast.error(error.message);
 		} finally {
 			setLoading(false);
@@ -35,7 +39,7 @@ const useLogin = () => {
 };
 export default useLogin;
 
-function handleInputErrors(username : string, password : string) {
+function handleInputErrors(username: string, password: string) {
 	if (!username || !password) {
 		toast.error("Please fill in all fields");
 		return false;
